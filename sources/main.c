@@ -24,7 +24,7 @@ Result http_download(httpcContext *context)//This error handling needs updated w
 	ret=httpcGetDownloadSizeState(context, NULL, &contentsize);
 	if(ret!=0)return ret;
 
-	printf("size: %"PRId32"\n",contentsize);
+	printf("size: %08"PRIx32"\n",contentsize);
 	gfxFlushBuffers();
 
 	buf = (u8*)malloc(contentsize);
@@ -49,6 +49,7 @@ Result http_download(httpcContext *context)//This error handling needs updated w
 	gfxSwapBuffers();
 
 	framebuf_top = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+
 	memcpy(framebuf_top, buf, size);
 
 	gfxFlushBuffers();
@@ -60,33 +61,15 @@ Result http_download(httpcContext *context)//This error handling needs updated w
 	return 0;
 }
 
-int main()
+int main(int argc, char **argv)
 {
 	Result ret=0;
 	httpcContext context;
         HB_Keyboard sHBKB;
 	gfxInitDefault();
-	httpcInit(0);
+	httpcInit();
 
-	consoleInit(GFX_BOTTOM,NULL);
-
-	//Change this to your own URL.
-	//char *url = "http://devkitpro.org/misc/httpexample_rawimg.rgb";
-
-	printf("Downloading %s\n",url);
-	gfxFlushBuffers();
-
-	ret = httpcOpenContext(&context, HTTPC_METHOD_GET, url, 1);
-	printf("return from httpcOpenContext: %"PRId32"\n",ret);
-	gfxFlushBuffers();
-
-	if(ret==0)
-	{
-		ret=http_download(&context);
-		printf("return from http_download: %"PRId32"\n",ret);
-		gfxFlushBuffers();
-		httpcCloseContext(&context);
-	}
+	consoleInit(GFX_TOP,NULL);
 
 	// Main loop
 	while (aptMainLoop())
@@ -98,7 +81,7 @@ int main()
 
 		u32 kDown = hidKeysDown();
 		if (kDown & KEY_START)
-			break; // break in order to return to hbmenu
+			break; 
                 touchPosition touch;
 
 		//Read the touch screen coordinates
@@ -113,25 +96,33 @@ int main()
 		
                 std::string InputHBKB = sHBKB.HBKB_CheckKeyboardInput(); // Check Input
 		
-                const char* url = InputHBKB.c_str();
-		
-                printf("\x1b[3;0HInput :");
-		
-                printf("\x1b[4;0H%s",url);
+                 char* gba= const_cast<char*>(InputHBKB.c_str());
+                  //printf("Downloading %s\n",gba);
+
                 
                 if (KBState == 1) // User finished Input
-		
-               {
+                 		
+               { ret = httpcOpenContext(&context,gba, 1);
+	printf("return from httpcOpenContext: %"PRId32"\n",ret);
+	gfxFlushBuffers();
+
+	if(ret==0)
+	{
+		ret=http_download(&context);
+		printf("return from http_download: %08"PRIx32"\n",ret);
+		gfxFlushBuffers();
+		httpcCloseContext(&context);
+	}
 			
-                 sHBKB.HBKB_Clean();
-                    break;
-                 }
+                   sHBKB.HBKB_Clean();
+                 
+                       }
 		
                 else if (KBState == 3)
 		
                {
 			
-                sHBKB.HBKB_Clean()
+                sHBKB.HBKB_Clean();
                  break;
                 }     // Flush and swap framebuffers
 		gfxFlushBuffers();
