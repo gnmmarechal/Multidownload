@@ -64,14 +64,14 @@ int main()
 {
 	Result ret=0;
 	httpcContext context;
-
+        HB_Keyboard sHBKB;
 	gfxInitDefault();
 	httpcInit(0);
 
 	consoleInit(GFX_BOTTOM,NULL);
 
 	//Change this to your own URL.
-	char *url = "http://devkitpro.org/misc/httpexample_rawimg.rgb";
+	//char *url = "http://devkitpro.org/misc/httpexample_rawimg.rgb";
 
 	printf("Downloading %s\n",url);
 	gfxFlushBuffers();
@@ -99,8 +99,41 @@ int main()
 		u32 kDown = hidKeysDown();
 		if (kDown & KEY_START)
 			break; // break in order to return to hbmenu
+                touchPosition touch;
 
-		// Flush and swap framebuffers
+		//Read the touch screen coordinates
+		
+                hidTouchRead(&touch);
+
+		// Call Keyboard with Touch Position
+		
+                u8 KBState = sHBKB.HBKB_CallKeyboard(touch);
+		
+		// Print Input
+		
+                std::string InputHBKB = sHBKB.HBKB_CheckKeyboardInput(); // Check Input
+		
+                const char* url = InputHBKB.c_str();
+		
+                printf("\x1b[3;0HInput :");
+		
+                printf("\x1b[4;0H%s",url);
+                
+                if (KBState == 1) // User finished Input
+		
+               {
+			
+                 sHBKB.HBKB_Clean();
+                    break;
+                 }
+		
+                else if (KBState == 3)
+		
+               {
+			
+                sHBKB.HBKB_Clean()
+                 break;
+                }     // Flush and swap framebuffers
 		gfxFlushBuffers();
 		gfxSwapBuffers();
 	}
