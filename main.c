@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <inttypes.h>
-
+#include "hbkb.h"
 #include <3ds.h>
 
 Result http_download(httpcContext *context)//This error handling needs updated with proper text printing once ctrulib itself supports that.
