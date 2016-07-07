@@ -8,7 +8,6 @@
 Result http_download(httpcContext *context)//This error handling needs updated with proper text printing once ctrulib itself supports that.
 {
 	Result ret=0;
-	u8* framebuf_top;
 	u32 statuscode=0;
 	u32 size=0, contentsize=0;
 	u8 *buf;
@@ -33,24 +32,20 @@ Result http_download(httpcContext *context)//This error handling needs updated w
 
 
 	ret = httpcDownloadData(context, buf, contentsize, NULL);
-	if(ret!=0)
+              Handle fileHandle;
+			u32 bytesWritten;
+			FS_Archive sdmcArchive=(FS_Archive){ARCHIVE_SDMC, (FS_Path){PATH_EMPTY, 1,                                               (u8*)""}};
+			FS_Path filePath=fsMakePath(PATH_ASCII,"/main.lua");
+			FSUSER_OpenFileDirectly( &fileHandle, sdmcArchive, filePath, FS_OPEN_CREATE|                                                FS_OPEN_WRITE, 0x00000000);
+			FSFILE_Write(fileHandle, &bytesWritten, 0, buf, contentsize,0x10001);
+			FSFILE_Close(fileHandle);
+			svcCloseHandle(fileHandle);
+			free(buf);
+                                             if(ret!=0)
 	{
 		free(buf);
 		return ret;
 	}
-
-	size = contentsize;
-	if(size>(240*400*3*2))size = 240*400*3*2;
-
-	framebuf_top = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-	memcpy(framebuf_top, buf, size);
-
-	gfxFlushBuffers();
-	gfxSwapBuffers();
-
-	framebuf_top = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
-
-	memcpy(framebuf_top, buf, size);
 
 	gfxFlushBuffers();
 	gfxSwapBuffers();
@@ -101,8 +96,8 @@ int main(int argc, char **argv)
 
                 
                 if (KBState == 1) // User finished Input
-                 		
-               { ret = httpcOpenContext(&context,gba, 1);
+                 {printf("Downloading %s\n",gba);		
+                ret = httpcOpenContext(&context,gba, 1);
 	printf("return from httpcOpenContext: %"PRId32"\n",ret);
 	gfxFlushBuffers();
 
