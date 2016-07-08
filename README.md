@@ -14,7 +14,7 @@ enhance ui
 
 -----------------------
 
-Credits
+Credits:-
 
 various people at discord
 
