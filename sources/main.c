@@ -5,7 +5,7 @@
 #include "hbkb.h"
 #include <3ds.h>
 
-Result http_download(httpcContext *context)//This error handling needs updated with proper text printing once ctrulib itself supports that.
+Result http_download(httpcContext *context, const char* url)//This error handling needs updated with proper text printing once ctrulib itself supports that.
 {
 	Result ret=0;
 	u32 statuscode=0;
@@ -35,7 +35,7 @@ Result http_download(httpcContext *context)//This error handling needs updated w
               Handle fileHandle;
 			u32 bytesWritten;
 			FS_Archive sdmcArchive=(FS_Archive){ARCHIVE_SDMC, (FS_Path){PATH_EMPTY, 1,                                               (u8*)""}};
-			FS_Path filePath=fsMakePath(PATH_ASCII,"/main.lua");
+			FS_Path filePath=fsMakePath(PATH_ASCII,strrchr(url, '/'));
 			FSUSER_OpenFileDirectly( &fileHandle, sdmcArchive, filePath, FS_OPEN_CREATE|                                                FS_OPEN_WRITE, 0x00000000);
 			FSFILE_Write(fileHandle, &bytesWritten, 0, buf, contentsize,0x10001);
 			FSFILE_Close(fileHandle);
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
 	if(ret==0)
 	{
-		ret=http_download(&context);
+		ret=http_download(&context , gba);
 		printf("return from http_download: %08"PRIx32"\n",ret);
 		gfxFlushBuffers();
 		httpcCloseContext(&context);
