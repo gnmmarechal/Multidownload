@@ -1,27 +1,25 @@
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <inttypes.h>
-#include "hbkb.h"
 #include <3ds.h>
-
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <inttypes.h>
 Result http_download(httpcContext *context, const char* url)//This error handling needs updated with proper text printing once ctrulib itself supports that.
 {
 	Result ret=0;
 	u32 statuscode=0;
 	u32 size=0, contentsize=0;
 	u8 *buf;
-                char *a=strrchr(url , '/');
+                char *a=strrchr(url, '/');
                   char *b=strrchr(a ,'.');
+	//httpcAddRequestHeaderField(context, (char*)"User-Agent",  (char*)"MULTIDOWNLOAD");
+                //httpcAddTrustedRootCA(context, cybertrust_cer, cybertrust_cer_len);
+	//httpcAddTrustedRootCA(context, digicert_cer, digicert_cer_len);
 	ret = httpcBeginRequest(context);
 	if(ret!=0)return ret;
-
-	ret = httpcGetResponseStatusCode(context, &statuscode, 0);
+                ret = httpcGetResponseStatusCode(context, &statuscode, 0);
 	if(ret!=0)return ret;
-
-	if(statuscode!=200)return -2;
-
-	ret=httpcGetDownloadSizeState(context, NULL, &contentsize);
+                if(statuscode!=200)return -2;
+                ret=httpcGetDownloadSizeState(context, NULL, &contentsize);
 	if(ret!=0)return ret;
 
 	printf("size: %08"PRIx32"\n",contentsize);
@@ -34,10 +32,11 @@ Result http_download(httpcContext *context, const char* url)//This error handlin
 	ret = httpcDownloadData(context, buf, contentsize, NULL);
               Handle fileHandle;
 			u32 bytesWritten;
-			FS_Archive sdmcArchive=(FS_Archive){ARCHIVE_SDMC, (FS_Path){PATH_EMPTY, 1,                                               (u8*)""}};
-                                                //strcat (c,a);
+                                              //strcat (c,a);
 			FS_Path filePath=fsMakePath(PATH_ASCII,a);
-			FSUSER_OpenFileDirectly( &fileHandle, sdmcArchive, filePath, FS_OPEN_CREATE|                                                FS_OPEN_WRITE, 0x00000000);
+                                                FSUSER_OpenFileDirectly(&fileHandle, FS_ArchiveID::ARCHIVE_SDMC,
+                                                fsMakePath(FS_PathType::PATH_EMPTY, ""),
+                                                filePath, FS_OPEN_CREATE|   FS_OPEN_WRITE,0x00000000 );
 			FSFILE_Write(fileHandle, &bytesWritten, 0, buf, contentsize,0x10001);
 			FSFILE_Close(fileHandle);
 			svcCloseHandle(fileHandle);
@@ -57,81 +56,87 @@ Result http_download(httpcContext *context, const char* url)//This error handlin
 	return 0;
 }
 
+
+
+
+static SwkbdCallbackResult MyCallback(void* user, const char** ppMessage, const char* text, size_t textlen)
+{
+	if (strstr(text, "lenny"))
+	{
+		*ppMessage = "Nice try but I'm not letting you use that meme right now";
+		return SWKBD_CALLBACK_CONTINUE;
+	}
+
+	if (strstr(text, "brick"))
+	{
+		*ppMessage = "~Time to visit Brick City~";
+		return SWKBD_CALLBACK_CLOSE;
+	}
+
+	return SWKBD_CALLBACK_OK;
+}
+
 int main(int argc, char **argv)
 {
-	Result ret=0;
-	httpcContext context;
-        HB_Keyboard sHBKB;
 	gfxInitDefault();
-	httpcInit();
-
-	consoleInit(GFX_TOP,NULL);
-
-	// Main loop
+	consoleInit(GFX_TOP, NULL);
+                Result ret=0;
+                httpcInit(0);
+	httpcContext context;
+	printf("MultiDownload by Kartik\n");
+	printf("Press A to begin\n");
+	printf("Press START to exit\n");
+                
 	while (aptMainLoop())
 	{
-		gspWaitForVBlank();
 		hidScanInput();
 
-		// Your code goes here
-
 		u32 kDown = hidKeysDown();
+
 		if (kDown & KEY_START)
-			break; 
-                touchPosition touch;
+		{	break;
+                                     }
+		static SwkbdState swkbd;
+		static char mybuf[960];
+		SwkbdButton button = SWKBD_BUTTON_NONE;
+		bool didit = false;
 
-		//Read the touch screen coordinates
-		
-                hidTouchRead(&touch);
 
-		// Call Keyboard with Touch Position
-		
-                u8 KBState = sHBKB.HBKB_CallKeyboard(touch);
-		
-		// Print Input
-		
-                std::string InputHBKB = sHBKB.HBKB_CheckKeyboardInput(); // Check Input
-		
-                 char* gba= const_cast<char*>(InputHBKB.c_str());
-                  //const char* gba= InputHBKB.c_str();
-                   printf("\x1b[3;0HDownload link :");
+		if (kDown & KEY_A)
+		{
+			didit = true;
+			swkbdInit(&swkbd, SWKBD_TYPE_WESTERN, 2, -1);
+			swkbdSetValidation(&swkbd, SWKBD_NOTEMPTY_NOTBLANK, 0, 0);
+			swkbdSetFilterCallback(&swkbd, MyCallback, NULL);
+			button = swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
+		}
 
-                   printf("\x1b[4;0H%s", gba);
-                   //char* nds = strdup(gba);
-                  gfxFlushBuffers();
-                
-                if (KBState == 1) // User finished Input
-                {		
-                ret = httpcOpenContext(&context,gba, 1);
-	printf("return from httpcOpenContext: %"PRId32"\n",ret);
-	gfxFlushBuffers();
+		if (didit)
+		{
+			if (button != SWKBD_BUTTON_NONE)
+			{
+				printf("Download: %s\n", mybuf);
+                                                                ret = httpcOpenContext(&context,HTTPC_METHOD_GET,mybuf, 1);
+	                                                printf("\x1b[5;0Hreturn from httpcOpenContext: %"PRId32"\n",ret);
+	                                                gfxFlushBuffers();
+                                                                if(ret==0)
+	                                                    {
+		                                       ret=http_download(&context , mybuf);
+		                                       printf("return from http_download: %08"PRIx32"\n",ret);                                                                                                             printf("Downloaded:%s\n",mybuf);
+		                                       gfxFlushBuffers();
+		                                       httpcCloseContext(&context);
+                                                           }
 
-	if(ret==0)
-	{
-		ret=http_download(&context , gba);
-		printf("return from http_download: %08"PRIx32"\n",ret);
-                                printf("Downloaded:%s\n",gba);
-		gfxFlushBuffers();
-		httpcCloseContext(&context);
-	}
-			
-                   sHBKB.HBKB_Clean();
-                 
-                       }
-		
-                else if (KBState == 3)
-		
-               {
-			
-                sHBKB.HBKB_Clean();
-                 break;
-                }     // Flush and swap framebuffers
+			} 
+		}
+                         
+		// Flush and swap framebuffers
 		gfxFlushBuffers();
 		gfxSwapBuffers();
-	}
 
-	// Exit services
-	httpcExit();
+		gspWaitForVBlank();
+	}
+               httpcExit();
 	gfxExit();
 	return 0;
 }
