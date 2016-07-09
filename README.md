@@ -8,6 +8,8 @@ Instructions:-
 
 Open the app through the homebrew launcher
 
+Press A button
+
 Enter a URL(the link should be direct link i.e.,it should end with file format)
 
 Click on right button or the okay button on the touch screen
@@ -30,6 +32,6 @@ various people at discord
 
 smealum and others
 
-jbr373 for hbkblib
+@fincs for swkbd
 
 ------------------------
