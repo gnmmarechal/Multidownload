@@ -20,8 +20,8 @@ Result http_download(httpcContext *context , const char *url)
                 			      char *a=strrchr(url, '/');
                   		                      char *b=strrchr(a ,'.');
 	httpcAddRequestHeaderField(context, (char*)"User-Agent",  (char*)"MULTIDOWNLOAD");
-                httpcAddTrustedRootCA(context, cybertrust_cer, cybertrust_cer_len);
-	httpcAddTrustedRootCA(context, digicert_cer, digicert_cer_len);
+                             ret = httpcSetSSLOpt(context, 1<<9);
+                                     if(ret!=0)return ret;
 	                                                      ret = httpcBeginRequest(context);
 	                                                      if(ret!=0)return ret;
                                                                       ret = httpcGetResponseStatusCode(context, &statuscode, 0);
