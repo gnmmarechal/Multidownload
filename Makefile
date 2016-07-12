@@ -58,7 +58,7 @@ LIBS	:= -lctru -lm
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(CTRULIB)							../source
+LIBDIRS	:= $(CTRULIB)							../sources
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
 # rules for different file extensions
