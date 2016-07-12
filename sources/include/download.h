@@ -1,4 +1,4 @@
 #ifndef DOWN_FILE
 #define DOWN_FILE
-Result httpdownload(httpcContext *context , const char* );
+Result http300(char* );
 #endif
