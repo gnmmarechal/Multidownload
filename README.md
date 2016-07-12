@@ -2,7 +2,7 @@
 
 A simple homebrew app for 3ds which downloads the link you type in it and saves to the root of your sd card.Useful for people who have broken cameras and cannot scan qr codes.This program can download all file formats(thats why you can download a 3dsx file also)Now supports official keyboard
 
-codeload.github.com support added(https) No support for aws urls as of still
+codeload.github.com support added(https) AWS Url support added!!
 
 -----------------------
 
