@@ -34,7 +34,7 @@ DATA		:=	data
 INCLUDES	:=	include
 #ROMFS		:=	romfs
 APP_AUTHOR         :=             Kartik
-APP_TITLE              :=             Multidownload
+APP_TITLE              :=             Multidownloader
 APP_DESCRIPTION :=            Download any file if it is a direct link
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -47,7 +47,7 @@ CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++11 
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
@@ -58,8 +58,7 @@ LIBS	:= -lctru -lm
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(CTRULIB)						       ../source
-
+LIBDIRS	:= $(CTRULIB)							../source
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
 # rules for different file extensions
