@@ -21,31 +21,25 @@ static SwkbdCallbackResult MyCallback(void* user, const char** ppMessage, const 
 	return SWKBD_CALLBACK_OK;
 }
 
-int main(int argc, char **argv)
-{
+int main() {
+		SwkbdState swkbd;
+		char mybuf[960];
+		SwkbdButton button = SWKBD_BUTTON_NONE;
+		bool didit = false;
+		
 	gfxInitDefault();
 	consoleInit(GFX_TOP, NULL);
-                Result ret=0;
-                httpcInit(0);
-	httpcContext context;
+
 	printf("MultiDownload by Kartik\n");
 	printf("Press A to begin\n");
 	printf("Press START to exit\n");
                 
 	while (aptMainLoop())
 	{
+		gspWaitForVBlank();
 		hidScanInput();
 
 		u32 kDown = hidKeysDown();
-
-		if (kDown & KEY_START)
-		{	break;
-                                     }
-		static SwkbdState swkbd;
-		static char mybuf[960];
-		SwkbdButton button = SWKBD_BUTTON_NONE;
-		bool didit = false;
-
 
 		if (kDown & KEY_A)
 		{
@@ -54,25 +48,32 @@ int main(int argc, char **argv)
 			swkbdSetValidation(&swkbd, SWKBD_NOTEMPTY_NOTBLANK, 0, 0);
 			swkbdSetFilterCallback(&swkbd, MyCallback, NULL);
 			button = swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
+			
+            httpcInit(0);			
+			if ((didit) && button != SWKBD_BUTTON_NONE)
+				http300(mybuf);
+			httpcExit();
+			
+			//cleaning vars
+			for (int i = 0; i < 960; i++)
+				mybuf[i] = ' ';
+			button = SWKBD_BUTTON_NONE;
+			didit = false;
+			
+			printf("\x1b[2J");
+			printf("MultiDownload by Kartik\n");
+			printf("Press A to begin\n");
+			printf("Press START to exit\n");
 		}
+		
+		if (kDown & KEY_START)
+			break;
 
-		if (didit)
-		{
-			if (button != SWKBD_BUTTON_NONE)
-			{
-				//printf("Download: %s\n", mybuf);
-                                                                return http300(mybuf);
-                                                                
-			} 
-		}
-                         
 		// Flush and swap framebuffers
 		gfxFlushBuffers();
 		gfxSwapBuffers();
-
-		gspWaitForVBlank();
 	}
-                httpcExit();
+                
 	gfxExit();
 	return 0;
 }
