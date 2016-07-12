@@ -60,17 +60,8 @@ int main(int argc, char **argv)
 		{
 			if (button != SWKBD_BUTTON_NONE)
 			{
-				printf("Download: %s\n", mybuf);
-                                                                ret = httpcOpenContext(&context,HTTPC_METHOD_GET,mybuf, 1);
-	                                                printf("\x1b[5;0Hreturn from httpcOpenContext: %"PRId32"\n",ret);
-	                                                gfxFlushBuffers();
-                                                                if(ret==0)
-	                                                    {
-		                                       ret=http_download(&context , mybuf);
-		                                       printf("return from http_download: %08"PRIx32"\n",ret);                                                                                                             printf("Downloaded:%s\n",mybuf);
-		                                       gfxFlushBuffers();
-		                                       httpcCloseContext(&context);
-                                                           }
+				//printf("Download: %s\n", mybuf);
+                                                                return http300(mybuf);
                                                                 
 			} 
 		}
