@@ -4,28 +4,13 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include "download.h"
-static SwkbdCallbackResult MyCallback(void* user, const char** ppMessage, const char* text, size_t textlen)
-{
-	if (strstr(text, "lenny"))
-	{
-		*ppMessage = "Nice try but I'm not letting you use that meme right now";
-		return SWKBD_CALLBACK_CONTINUE;
-	}
-
-	if (strstr(text, "brick"))
-	{
-		*ppMessage = "~Time to visit Brick City~";
-		return SWKBD_CALLBACK_CLOSE;
-	}
-
-	return SWKBD_CALLBACK_OK;
-}
 
 int main() {
 		SwkbdState swkbd;
 		char mybuf[960];
 		SwkbdButton button = SWKBD_BUTTON_NONE;
 		bool didit = false;
+                              //Result ret=1;
 		
 	gfxInitDefault();
 	consoleInit(GFX_TOP, NULL);
@@ -46,12 +31,15 @@ int main() {
 			didit = true;
 			swkbdInit(&swkbd, SWKBD_TYPE_WESTERN, 2, -1);
 			swkbdSetValidation(&swkbd, SWKBD_NOTEMPTY_NOTBLANK, 0, 0);
-			swkbdSetFilterCallback(&swkbd, MyCallback, NULL);
 			button = swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
 			
-            httpcInit(0);			
+                                                httpcInit(0);
+                                                Result ret=1;			
 			if ((didit) && button != SWKBD_BUTTON_NONE)
-				http300(mybuf);
+		                ret=http300(mybuf);
+                                                if(ret==0)
+                                               {printf("Downloaded/n");
+                                             }
 			httpcExit();
 			
 			//cleaning vars
