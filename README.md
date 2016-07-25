@@ -12,6 +12,8 @@ Open the app through the homebrew launcher
 
 Press A button
 
+Press X button to save the file toanother location.(some support)
+
 Enter a URL(the link should be direct link i.e.,it should end with file format)
 
 Click on  the okay button on the touch screen
@@ -22,9 +24,7 @@ For eg. If I type http://kartik.net16.net/default.php in the download box it wil
 
 Todo:-
 
-Add a progress bar
-
-enhance ui
+Satisfy People :P
 
 -----------------------
 
@@ -35,7 +35,5 @@ various people at discord
 smealum and others
 
 @fincs for swkbd
-
-@Hamcha for cert files
 
 ------------------------
