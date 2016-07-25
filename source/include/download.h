@@ -1,4 +1,4 @@
 #ifndef DOWN_FILE
 #define DOWN_FILE
-Result http300(char* );
+Result http300(char* ,char*);
 #endif
