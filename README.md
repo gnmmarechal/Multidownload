@@ -12,7 +12,7 @@ Open the app through the homebrew launcher
 
 Press A button
 
-Press X button to save the file toanother location.(some support)
+Press X button to save the file to another location.(some support)
 
 Enter a URL(the link should be direct link i.e.,it should end with file format)
 
