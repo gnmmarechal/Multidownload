@@ -1,13 +1,8 @@
-#include <3ds.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <inttypes.h>
-//extern char* newurl;
-
+#include "libs.h"
+#include "zip.h"
 Result http300(char* nurl, char* e)
-{
-    printf("\x1b[2J");
+{ 
+    //printf("\x1b[2J");
     Result ret = 0;
     u8* buf;
     char* d = strrchr(nurl, '/');
@@ -15,7 +10,8 @@ Result http300(char* nurl, char* e)
     u32 statuscode = 0;
     httpcContext context;
     printf("Download:%s\n ", nurl);
-    ret = httpcOpenContext(&context, HTTPC_METHOD_GET, nurl, 0);
+	
+	ret = httpcOpenContext(&context, HTTPC_METHOD_GET, nurl, 0);
     if (ret != 0)
         return ret;
     printf("return from httpcOpenContext: %" PRId32 "\n", ret);
@@ -57,12 +53,34 @@ Result http300(char* nurl, char* e)
     FILE* fptr = fopen(e, "wb");
     fwrite(buf, 1, size, fptr);
     fclose(fptr);
-    //free(buf);
+	
+	  //free(buf);
     if (ret != 0) {
         free(buf);
-        httpcCloseContext(&context);
-        //printf(" Downloaded:%s\n ",nurl);
+		httpcCloseContext(&context);
+        printf("Error while Downloading\n");
         return ret;
-    }
+	}
+	else
+    {   printf("Success");
+		char *ext =strrchr(d , '.');
+        if (ext) {
+        printf("extension is %s\n", ext + 1);
+        }
+        if(strcmp(ext + 1,"zip") == 0) {
+          printf("It worked\n");
+		  sdmcInit();
+		  fsInit();
+		  char *a="/3ds/";
+		  ret = ezip(e);
+		  if (ret==0)
+		    {   
+	          printf("Extracted\n");
+		      sdmcExit();
+		      fsExit();
+		    }
+		
+	    }
+	}
     return 0;
 }

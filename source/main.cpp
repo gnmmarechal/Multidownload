@@ -1,10 +1,11 @@
 #include "libs.h"
 #include "download.h"
+char loca[1024];
 int main()
 {
     SwkbdState swkbd;
     char mybuf[960];
-    char loca[1024];
+    //char loca[1024];
     SwkbdButton button = SWKBD_BUTTON_NONE;
     bool didit = false;
     bool didloc = false;
@@ -32,6 +33,7 @@ int main()
             printf("error");
     }
     printf("MultiDownload by Kartik\n");
+	printf("Version x.1");
     printf("Press A to begin\n");
     printf("Press X to edit Download location\n");
     printf("Press START to exit\n");
@@ -72,7 +74,7 @@ int main()
             if ((didit) && button != SWKBD_BUTTON_NONE)
                 ret = http300(mybuf, loca);
             if (ret == 0) {
-                printf("Downloaded/n");
+                printf("Downloaded\n");
             }
             httpcExit();
             //cleaning vars
@@ -80,17 +82,7 @@ int main()
                 mybuf[i] = ' ';
             button = SWKBD_BUTTON_NONE;
             didit = false;
-            printf("\x1b[2J");
-            printf("MultiDownload by Kartik\n");
-            printf("Press A to begin\n");
-            printf("Press X to edit Download location\n");
-            printf("Press START to exit\n");
-            if (buffer[0] == '\0') {
-                printf("Downloading to the root of the sd card");
-            }
-            else {
-                printf("Will download to location %s \n", buffer);
-            }
+           
         }
         if (kDown & KEY_START)
             break;
