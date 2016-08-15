@@ -49,6 +49,16 @@ Result http300(char* nurl, char* e)
     ret = httpcDownloadData(&context, buf, size, NULL);
     Handle fileHandle;
     u32 bytesWritten;
+    if(!(mkdir(e , 0777)))
+		printf("Path didn't exist made one with success\n");
+	else 
+	{   if (ENOENT == errno)
+		{printf("error with path\n");
+		}
+	     if (EEXIST == errno)
+		 { printf("exists\n");
+	   }			 
+	} 
     strcat(e, d);
     FILE* fptr = fopen(e, "wb");
     fwrite(buf, 1, size, fptr);
