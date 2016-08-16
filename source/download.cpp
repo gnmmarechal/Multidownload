@@ -59,10 +59,47 @@ Result http300(char* nurl, char* e)
 		 { printf("exists\n");
 	   }			 
 	} 
-    strcat(e, d);
-    FILE* fptr = fopen(e, "wb");
-    fwrite(buf, 1, size, fptr);
-    fclose(fptr);
+   const char *git=  "https://github-cloud.s3.amazonaws.com";
+	if(strstr(nurl,git)!=NULL)
+	{
+	printf("got git\n");
+          const char *git1="filename%3D";
+	  const char *git2="&";
+	  char *target =NULL;
+	  char *end ,*start;
+	  if(start=strstr(nurl,git1))
+	  {
+		  start +=strlen(git1);
+		  if (end= strstr(start,git2))
+		  {
+		  target = (char*)malloc(end-start+1);
+		  memcpy(target,start,end-start);
+		  target[end-start]= '\0';
+		  }
+		  else 
+			  printf("error\n");
+	        }
+		  else
+			  printf("error\n");
+		  if (target)printf("Filename is %s\n",target);
+		   char f[1024]="/";
+		   strcat (f , target);
+		   strcat(e,f);
+		   printf("location is %s\n",e);
+                   FILE* fptr = fopen(e, "wb");
+                   fwrite(buf, 1, size, fptr);
+                   fclose(fptr);
+		  }
+	  else
+	  {
+	  printf("not git\n");
+          printf("Filename will be (excluding the '/') %s\n",d);
+	  strcat(e, d);
+	  printf("location is %s\n",e);
+      FILE* fptr = fopen(e, "wb");
+      fwrite(buf, 1, size, fptr);
+      fclose(fptr);
+	  }
 	
 	  //free(buf);
     if (ret != 0) {
