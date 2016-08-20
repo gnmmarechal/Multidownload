@@ -1,8 +1,10 @@
 #include "libs.h"
+#include <3ds/services/hid.h>
 #include "download.h"
 char loca[1024];
+PrintConsole top,bottom;
 int main()
-{
+{   touchPosition touch;
     SwkbdState swkbd;
     char mybuf[960];
     //char loca[1024];
@@ -12,8 +14,9 @@ int main()
     char buffer[100];
     //Result ret=1;
     gfxInitDefault();
-    PrintConsole topScreen, bottomScreen;
-    consoleInit(GFX_TOP, NULL);
+    consoleInit(GFX_BOTTOM,&bottom);
+    consoleInit(GFX_TOP, &top);
+	consoleSelect(&top);
     FILE* file = fopen("multi.cfg", "rb");
     if (file == NULL) {
         printf("Downloading to the root of the sdmc\n");
@@ -32,18 +35,25 @@ int main()
         if (size != bytesRead)
             printf("error");
     }
-    printf("MultiDownload by Kartik\n");
-	printf("Version x.1");
-    printf("Press A to begin\n");
-    printf("Press X to edit Download location\n");
-    printf("Press START to exit\n");
+	
+    printf("          MultiDownload by Kartik\n");
+	printf("              Version x.2\n");
+    printf("           Select an option\n");
+    printf("          Press START to exit\n");
     printf("Will download to location %s\n", buffer);
+	consoleSelect(&bottom);
+	printf("          EDIT DOWNLOAD LOCATION\n");
+	printf("\n\n\n\n");
+	printf("              ENTER A URL\n");
     strcpy(loca, buffer);
     while (aptMainLoop()) {
         gspWaitForVBlank();
         hidScanInput();
         u32 kDown = hidKeysDown();
-        if (kDown & KEY_X) {
+		hidTouchRead(&touch);
+		consoleSelect(&top);
+        if (kDown & KEY_TOUCH) {
+			if(touch.py < 030 && touch.px < 240) {
             didloc = true;
             const char* texgen = "Enter download to location";
             swkbdInit(&swkbd, SWKBD_TYPE_WESTERN, 2, -1);
@@ -62,7 +72,7 @@ int main()
             fclose(fp);
             printf("Location changed to %s\n", loca);
         }
-        if (kDown & KEY_A) {
+        if (touch.py < 060&& touch.py >030&& touch.px <240 ) {
             didit = true;
             const char* texgen2 = "Enter download url";
             swkbdInit(&swkbd, SWKBD_TYPE_WESTERN, 2, -1);
@@ -72,7 +82,7 @@ int main()
             httpcInit(0);
             Result ret = 1;
             if ((didit) && button != SWKBD_BUTTON_NONE)
-                ret = http300(mybuf, loca);
+                ret = http300(mybuf);
             if (ret == 0) {
                 printf("Downloaded\n");
             }
@@ -84,6 +94,7 @@ int main()
             didit = false;
            
         }
+	}
         if (kDown & KEY_START)
             break;
         // Flush and swap framebuffers

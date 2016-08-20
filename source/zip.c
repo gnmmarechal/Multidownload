@@ -1,11 +1,4 @@
 #include "libs.h"
-int makeDirectory(char *dir) {
-    printf("mkdir(%s)\n", dir);
-    return 0;
-    // For MinGW (requires io.h)
-    mkdir(dir , 0777);
-    return 1;
-}
 
 void writeFile(char *filename, void *data, long bytes) {
     FILE *out;
@@ -16,11 +9,17 @@ void writeFile(char *filename, void *data, long bytes) {
             continue;
 
         filename[i] = '\0'; // terminate string at this point
-
-        if(!makeDirectory(filename)) {
-            printf("Couldn't create subdirectory %s!\n", filename);
-            return;
-        }
+        printf("dir to be created is %s\n" ,filename );
+        /*if(!(mkdir(e , 0777)))
+		printf("Path didn't exist made one with success\n");
+	else 
+	{   if (ENOENT == errno)
+		{printf("error with path\n");
+		}
+	     if (EEXIST == errno)
+		 { printf("exists\n");
+	   }			 
+	} */
 
         filename[i] = '/'; // Put the separator back
     }
