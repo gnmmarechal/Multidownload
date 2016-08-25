@@ -1,5 +1,14 @@
 #include "libs.h"
 #include "zip.h"
+#include <sys/time.h>
+
+
+
+
+
+Result http300(char *nurl);
+
+
 Result make(u8* buf,u32* size,char*loca)
 {
 FILE* fptr = fopen(loca, "wb");
@@ -8,12 +17,12 @@ FILE* fptr = fopen(loca, "wb");
 	  return 0;
 	}
 
-Result http300(char* nurl)
+Result http_down(char* nurl)
 { 
-    char* d = strrchr(nurl, '/');
+	char* d = strrchr(nurl, '/');
     Result ret = 0;
     u32 statuscode=0;
-    u32 contentsize=0, readsize=0, size=0;
+	u32 contentsize=0, readsize=0, size=0;
     u8 *buf, *lastbuf;
     httpcContext context;
     printf("Download:%s\n", nurl);
@@ -27,23 +36,24 @@ Result http300(char* nurl)
     printf("return from httpcOpenContext: %" PRId32 "\n", ret);
     ret = httpcAddRequestHeaderField(&context, (char*)"User-Agent", (char*)"MULTIDOWNLOAD");
     if (ret != 0){
-		  printf("error in ARHF 0x%08X",ret);
+		 printf("error in ARHF 0x%08X",ret);
 		  return ret;
          }
-        
     ret = httpcSetSSLOpt(&context, 1 << 9);
     if (ret != 0){
-		  printf("error in SSLO 0x%08X",ret);
-		  return ret;
+		 printf("error in SSLO 0x%08X",ret);
+		  return -1;
          }
     ret = httpcBeginRequest(&context);
     if (ret != 0){
-		  printf("error in HPR 0x%08X",ret);
-		  return ret;
+		 printf("error in HPR 0x%08X",ret);
+		  return -1;
          }
     ret = httpcGetResponseStatusCode(&context, &statuscode, 0);
     if (ret != 0)
-	return ret;
+	{printf("Wrong protocol:%s\n",nurl);
+    return -1;
+	}
     printf("Statuscode:%" PRId32 "\n", statuscode);
     if ((statuscode >= 301 && statuscode <= 303) || (statuscode >= 307 && statuscode <= 308)) {
         printf("300\n");
@@ -77,14 +87,14 @@ Result http300(char* nurl)
 		 { printf("exists\n");
 	   }			 
 	} 
-   
-    
-	do {
+
+    do {
 		// This download loop resizes the buffer as data is read.
 		ret = httpcDownloadData(&context, buf+size, 0x1000, &readsize);
 		size += readsize;
+		printf("Downloaded %d bytes out of %d bytes\r",size,contentsize);
 		
-					printf("Downloaded %d bytes out of %d bytes\r",size,contentsize);
+		
 		if (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING){
 			   
 				lastbuf = buf; // Save the old pointer, in case realloc() fails.
@@ -262,4 +272,25 @@ Result http300(char* nurl)
     httpcCloseContext(&context);
 	free(buf);
     return 0;
+}
+Result http300(char *nurl)
+{  
+   Result ret=0;
+
+   if(strstr(nurl,"http")!=NULL)
+   {
+	  ret= http_down(nurl);
+   }
+   else 
+   {
+   char a[1024]="https://";
+   strcat(a,nurl);
+   ret=http_down(a);
+   if (ret==-1)
+   {char b[1024]="http://";
+	strcat(b,nurl);
+    ret=http_down(b);	
+	 } 
+   }
+  return 0;
 }
