@@ -2,22 +2,9 @@
 #include <3ds/services/hid.h>
 #include "download.h"
 char loca[1024];
-PrintConsole top,bottom;
-int main()
-{   touchPosition touch;
-    SwkbdState swkbd;
-    char mybuf[960];
-    //char loca[1024];
-    SwkbdButton button = SWKBD_BUTTON_NONE;
-    bool didit = false;
-    bool didloc = false;
-    char buffer[100];
-    //Result ret=1;
-    gfxInitDefault();
-    consoleInit(GFX_BOTTOM,&bottom);
-    consoleInit(GFX_TOP, &top);
-	consoleSelect(&top);
-    FILE* file = fopen("multi.cfg", "rb");
+char buffer[1024];
+void readcfg()
+{ FILE* file = fopen("multi.cfg", "rb");
     if (file == NULL) {
         printf("Downloading to the root of the sdmc\n");
         fclose(file);
@@ -34,8 +21,27 @@ int main()
         fclose(file);
         if (size != bytesRead)
             printf("error");
+		  strcpy(loca,buffer);
     }
 	
+}
+PrintConsole top,bottom;
+int main()
+{   touchPosition touch;
+    SwkbdState swkbd;
+    char mybuf[960];
+    //char loca[1024];
+    SwkbdButton button = SWKBD_BUTTON_NONE;
+    bool didit = false;
+    bool didloc = false;
+    
+    //Result ret=1;
+    gfxInitDefault();
+    consoleInit(GFX_BOTTOM,&bottom);
+    consoleInit(GFX_TOP, &top);
+	consoleSelect(&top);
+   
+	readcfg();
     printf("          MultiDownload by Kartik\n");
 	printf("              Version x.2\n");
     printf("           Select an option\n");
@@ -45,7 +51,7 @@ int main()
 	printf("          EDIT DOWNLOAD LOCATION\n");
 	printf("\n\n\n\n");
 	printf("              ENTER A URL\n");
-    strcpy(loca, buffer);
+    //strcpy(loca, buffer);
     while (aptMainLoop()) {
         gspWaitForVBlank();
         hidScanInput();
@@ -82,7 +88,9 @@ int main()
             httpcInit(0);
             Result ret = 1;
             if ((didit) && button != SWKBD_BUTTON_NONE)
+			{
                 ret = http300(mybuf);
+			
             if (ret == 0) {
                 printf("Downloaded\n");
             }
@@ -92,7 +100,7 @@ int main()
                 mybuf[i] = ' ';
             button = SWKBD_BUTTON_NONE;
             didit = false;
-           
+			}
         }
 	}
         if (kDown & KEY_START)
