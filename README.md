@@ -21,6 +21,7 @@ Zip support
 
 QR support
 
+Special sites support
 -----------------------
 Credits:-
 
