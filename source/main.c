@@ -1,10 +1,15 @@
 #include "libs.h"
 #include <3ds/services/hid.h>
 #include "download.h"
+#include "qr.h"
+u32 __stacksize__ =0x40000;
+
 char loca[1024];
 char buffer[1024];
+
 void readcfg()
-{ FILE* file = fopen("multi.cfg", "rb");
+{ 
+    FILE* file = fopen("multi.cfg", "rb");
     if (file == NULL) {
         printf("Downloading to the root of the sdmc\n");
         fclose(file);
@@ -25,6 +30,10 @@ void readcfg()
     }
 	
 }
+   void clearScreen(void) {
+	u8 *frame = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL);
+	memset(frame, 0, 320 * 240 * 3);
+}
 PrintConsole top,bottom;
 int main()
 {   touchPosition touch;
@@ -34,13 +43,12 @@ int main()
     SwkbdButton button = SWKBD_BUTTON_NONE;
     bool didit = false;
     bool didloc = false;
-    
+     hidInit();
     //Result ret=1;
     gfxInitDefault();
     consoleInit(GFX_BOTTOM,&bottom);
     consoleInit(GFX_TOP, &top);
 	consoleSelect(&top);
-   
 	readcfg();
     printf("          MultiDownload by Kartik\n");
 	printf("              Version x.2\n");
@@ -51,6 +59,8 @@ int main()
 	printf("          EDIT DOWNLOAD LOCATION\n");
 	printf("\n\n\n\n");
 	printf("              ENTER A URL\n");
+	printf("\n\n\n\n");
+	printf("              SCAN A QR CODE\n");
     //strcpy(loca, buffer);
     while (aptMainLoop()) {
         gspWaitForVBlank();
@@ -103,12 +113,41 @@ int main()
 			}
         }
 	}
+	
+	  if(touch.py < 90 && touch.py >60 && touch.px<240) {
+		    Result ret =1;
+			consoleClear();
+			consoleSelect(&bottom);
+			consoleClear();
+			consoleSelect(&top);
+			gfxSetScreenFormat(GFX_BOTTOM,GSP_BGR8_OES);
+			ret=qr();
+			if (ret==0)
+				
+			{  
+			    consoleClear();
+				printf("Success");
+				clearScreen();
+				gfxFlushBuffers();
+				gfxSwapBuffers();
+				extern char qurl[1024];
+				httpcInit(0);
+				ret=http300(qurl);
+		         if (ret==0) {
+					 printf("DOWNLOAD: Success");
+					 httpcExit();
+				 }
+			}
+	  }
+	
         if (kDown & KEY_START)
             break;
         // Flush and swap framebuffers
         gfxFlushBuffers();
+		gspWaitForVBlank();
         gfxSwapBuffers();
     }
+	
     gfxExit();
     return 0;
 }
