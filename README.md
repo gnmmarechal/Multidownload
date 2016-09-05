@@ -35,4 +35,5 @@ smealum and others
 @dlbeer for quirc
 
 @ksanislo for QRWEBLOADER
+
 ------------------------
