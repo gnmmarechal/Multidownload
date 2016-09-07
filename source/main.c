@@ -1,7 +1,7 @@
 #include "libs.h"
 #include <3ds/services/hid.h>
 #include "download.h"
-#include "qr.h"
+#include "qrdec.h"
 u32 __stacksize__ =0x40000;
 
 char loca[1024];
