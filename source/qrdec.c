@@ -102,7 +102,6 @@ Result qr() {
 	printf("CAMU_SetTrimming: 0x%08X\n", (unsigned int) CAMU_SetTrimming(PORT_CAM2, false));
 	//printf("CAMU_SetTrimmingParamsCenter: 0x%08X\n", (unsigned int) CAMU_SetTrimmingParamsCenter(PORT_CAM1, 512, 240, 512, 384));
     struct quirc *qr;
-
 	qr = quirc_new();
 	if (!qr){
 		printf("Failed to allocate memory");
@@ -117,7 +116,6 @@ Result qr() {
 	u16 *buf = malloc(BUF_SIZE);
 
 	gfxFlushBuffers();
-	gspWaitForVBlank();
 	gfxSwapBuffers();
 
 	// Main loop
@@ -147,7 +145,7 @@ Result qr() {
 			quirc_decode_error_t err;
 
 			quirc_extract(qr, i, &code);
-
+			
 			writePictureToFramebufferRGB565(gfxGetFramebuffer(GFX_BOTTOM, GFX_RIGHT, NULL, NULL), buf, 0, 0, WIDTH, HEIGHT);
 			err = quirc_decode(&code, &data);
 			if (!err){
@@ -156,24 +154,23 @@ Result qr() {
 				Result ret = 1 ;
 				memcpy(qurl,data.payload,strlen((char*)data.payload)+1);
 				printf("Succesful 1");
-				 quirc_destroy(qr);
-				 printf("\nSuccesful 2\n");
-			     camExit();
-				 printf("Succesful 3\n");
+                                camExit();
+                                printf("Succesful 3\n");
 				 free(buf);
 				 printf("Succesful 4\n");
 				 cleanup();
 				 printf("Succesful 5\n");
 				 httpcExit();
 				 printf("Succesful 6\n");
-				 printf("Successful till here\n");
-				 
-				 return 0;
-              }                                                              
-			}
+				 quirc_destroy(qr);
+				return 0;
+            }                                                              
+		}
 		gfxFlushBuffers();
 		gspWaitForVBlank();
 		gfxSwapBuffers();
 	}
+
  return 0;
+ 
 }
