@@ -34,8 +34,8 @@ DATA		:=	data
 INCLUDES	:=	include
 #ROMFS		:=	romfs
 APP_AUTHOR         :=             Kartik
-APP_TITLE              :=             Multidownloader
-APP_DESCRIPTION :=            Download any file if it is a direct link
+APP_TITLE              :=             Multidownload
+APP_DESCRIPTION :=           Download files right on your 3ds!
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
