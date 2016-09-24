@@ -27,6 +27,76 @@ void writePictureToIntensityMap(void *fb, void *img, u16 width, u16 height){
 	}
 }
 
+void putpixel(void *fb, int x, int y, u32 c) {
+	u8 *fb_8 = (u8*) fb;
+	u32 v = ((HEIGHT - y - 1) + (x * HEIGHT)) * 3;
+	fb_8[ v ] = (((c) >>  0) & 0xFF);
+	fb_8[v+1] = (((c) >>  8) & 0xFF);
+	fb_8[v+2] = (((c) >> 16) & 0xFF);
+}
+
+void bhm_line(void *fb,int x1,int y1,int x2,int y2,u32 c)
+{
+	int x,y,dx,dy,dx1,dy1,px,py,xe,ye,i;
+	dx=x2-x1;
+	dy=y2-y1;
+	dx1=fabs(dx);
+	dy1=fabs(dy);
+	px=2*dy1-dx1;
+	py=2*dx1-dy1;
+	if(dy1<=dx1){
+		if(dx>=0){
+			x=x1;
+			y=y1;
+			xe=x2;
+		} else {
+			x=x2;
+			y=y2;
+			xe=x1;
+		}
+		putpixel(fb,x,y,c);
+		for(i=0;x<xe;i++){
+			x=x+1;
+			if(px<0){
+				px=px+2*dy1;
+			} else {
+				if((dx<0 && dy<0) || (dx>0 && dy>0)){
+					y=y+1;
+				} else {
+					y=y-1;
+				}
+				px=px+2*(dy1-dx1);
+			}
+			putpixel(fb,x,y,c);
+		}
+	} else {
+		if(dy>=0){
+			x=x1;
+			y=y1;
+			ye=y2;
+		} else {
+			x=x2;
+			y=y2;
+			ye=y1;
+		}
+		putpixel(fb,x,y,c);
+		for(i=0;y<ye;i++){
+			y=y+1;
+			if(py<=0){
+				py=py+2*dx1;
+			} else {
+				if((dx<0 && dy<0) || (dx>0 && dy>0)){
+					x=x+1;
+				} else {
+					x=x-1;
+				}
+				py=py+2*(dx1-dy1);
+			}
+			putpixel(fb,x,y,c);
+		}
+	}
+}
+
 
 void cleanup() {
 	camExit();
@@ -147,21 +217,28 @@ Result qr() {
 			quirc_extract(qr, i, &code);
 			
 			writePictureToFramebufferRGB565(gfxGetFramebuffer(GFX_BOTTOM, GFX_RIGHT, NULL, NULL), buf, 0, 0, WIDTH, HEIGHT);
+			for (int j = 0; j < 4; j++) {
+				struct quirc_point *a = &code.corners[j];
+				struct quirc_point *b = &code.corners[(j + 1) % 4];
+				bhm_line(gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL), a->x, a->y, b->x, b->y, 0x0077FF77);
+}                   
+                   gfxFlushBuffers();
+				   gfxSwapBuffers();
 			err = quirc_decode(&code, &data);
 			if (!err){
 				CAMU_Activate(SELECT_NONE);
-				printf("DECODE SUCCESSFUL %s\n",data.payload);
+				printf("\x1b[32;1mDECODE SUCCESSFUL %s\n\x1b[37;1m",data.payload);
 				Result ret = 1 ;
 				memcpy(qurl,data.payload,strlen((char*)data.payload)+1);
-				printf("Succesful 1");
-                                camExit();
-                                printf("Succesful 3\n");
+				printf("\x1b[32;1mSuccesful 1\x1b[37;1m");
+                 camExit();
+                 printf("\x1b[32;1mSuccesful 3\n\x1b[37;1m");
 				 free(buf);
-				 printf("Succesful 4\n");
+				 printf("\x1b[32;1mSuccesful 4\n\x1b[37;1m");
 				 cleanup();
-				 printf("Succesful 5\n");
+				 printf("\x1b[32;1mSuccesful 5\n\x1b[37;1m");
 				 httpcExit();
-				 printf("Succesful 6\n");
+				 printf("\x1b[32;1mSuccesful 6\n\x1b[37;1m");
 				 quirc_destroy(qr);
 				return 0;
             }                                                              
