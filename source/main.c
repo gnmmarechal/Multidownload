@@ -2,11 +2,12 @@
 #include <3ds/services/hid.h>
 #include "download.h"
 #include "qrdec.h"
+#include "quirc.h"
+
 u32 __stacksize__ =0x40000;
 
 char loca[1024];
 char buffer[1024];
-
 void readcfg()
 { 
     FILE* file = fopen("multi.cfg", "rb");
@@ -35,6 +36,7 @@ void readcfg()
 	memset(frame, 0, 320 * 240 * 3);
 }
 PrintConsole top,bottom;
+
 int main()
 {   touchPosition touch;
     SwkbdState swkbd;
@@ -44,24 +46,27 @@ int main()
     bool didit = false;
     bool didloc = false;
      hidInit();
-    //Result ret=1;
+    Result res=1;
     gfxInitDefault();
+	acInit();
     consoleInit(GFX_BOTTOM,&bottom);
     consoleInit(GFX_TOP, &top);
 	consoleSelect(&top);
 	readcfg();
-    printf("          MultiDownload by Kartik\n");
-	printf("              Version x.2\n");
+    printf("\x1b[37;1m          MultiDownload by Kartik\n");
+	printf("              Version x.3\n");
     printf("           Select an option\n");
     printf("          Press START to exit\n");
     printf("Will download to location %s\n", buffer);
+	
 	consoleSelect(&bottom);
-	printf("          EDIT DOWNLOAD LOCATION\n");
+	printf("\x1b[37;1m         EDIT DOWNLOAD LOCATION\n");
 	printf("\n\n\n\n");
 	printf("              ENTER A URL\n");
 	printf("\n\n\n\n");
-	printf("              SCAN A QR CODE\n");
+	printf("             SCAN A QR CODE\n");
     //strcpy(loca, buffer);
+	
     while (aptMainLoop()) {
         gspWaitForVBlank();
         hidScanInput();
@@ -102,8 +107,10 @@ int main()
                 ret = http300(mybuf);
 			
             if (ret == 0) {
-                printf("Downloaded\n");
+                printf("\x1b[32;1mDOWNLOAD: Success\n\x1b[37;1m");
             }
+			else 
+				printf("\x1b[31;1mDOWNLOAD: Failed\n\x1b[37;1m");
             httpcExit();
             //cleaning vars
             for (int i = 0; i < 960; i++)
@@ -121,12 +128,13 @@ int main()
 			consoleClear();
 			consoleSelect(&top);
 			gfxSetScreenFormat(GFX_BOTTOM,GSP_BGR8_OES);
+			
 			ret=qr();
 			if (ret==0)
 				
-			{  
+			{   
 			    consoleClear();
-				printf("Success");
+				printf("\x1b[32;1mSuccess\n\x1b[37;1m");
 				clearScreen();
 				gfxFlushBuffers();
 				gfxSwapBuffers();
@@ -134,7 +142,12 @@ int main()
 				httpcInit(0);
 				ret=http300(qurl);
 		         if (ret==0) {
-					 printf("DOWNLOAD: Success");
+					 printf("\x1b[32;1mDOWNLOAD: Success\n\x1b[37;1m");
+					 httpcExit();
+				 }
+				 else
+				 {
+					 printf("\x1b[31;1mDOWNLOAD: Failed\n\x1b[37;1m");
 					 httpcExit();
 				 }
 			}
@@ -147,7 +160,8 @@ int main()
 		gspWaitForVBlank();
         gfxSwapBuffers();
     }
-	
+	hidExit();
+	acExit();
     gfxExit();
     return 0;
 }
