@@ -229,7 +229,8 @@ Result qr() {
 				CAMU_Activate(SELECT_NONE);
 				printf("\x1b[32;1mDECODE SUCCESSFUL %s\n\x1b[37;1m",data.payload);
 				Result ret = 1 ;
-				memcpy(qurl,data.payload,strlen((char*)data.payload)+1);
+				memset(qurl,'\0',sizeof(qurl));
+				strcpy(qurl,(char*)data.payload);
 				printf("\x1b[32;1mSuccesful 1\x1b[37;1m");
                  camExit();
                  printf("\x1b[32;1mSuccesful 3\n\x1b[37;1m");
