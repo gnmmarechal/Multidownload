@@ -2,57 +2,12 @@
 #include "zip.h"
 #include <sys/time.h>
 #include "mega.h"
-
+#include "fs.h"
+#include "cia.h"
 u64 top=3000000000;
 
 
 Result http300(char *nurl);
-Result make(u8* buf,u32 size,char* loca);
-Result dsx(char *nurl,u8* buf, u32 size)
-{      const char *b = ".3dsx";
-	   const char *k ="/";  
-	   char* d = strrchr(nurl, '/');
-	   printf("%s",d);
-	   char *target =NULL;
-	   char *end ,*start;
-	   Result ret=0;
-	  if(start=strstr(nurl,k))
-	  {
-		  start +=strlen(k);
-		  if (end= strstr(start,b))
-		  {
-		  target = (char*)malloc(end-start+1);
-		  memcpy(target,start,end-start);
-		  target[end-start]= '\0';
-		  }
-		  else 
-			  printf("error\n");
-	        }
-			else
-			printf("error\n");
-		   char* g = strrchr(target, '/');
-          printf("%s\n",target);
-		   printf("%s\n",g);
-		   char a[1002]="/3ds";
-		  strcat(a,g);
-		  strcat(a,d);
-          ret = make(buf, size,a);
-		  if (ret==0)
-		  {   printf("%s\n",a);
-			  printf("success\n");
-		      free(target);
-		      return 0;
-			  }
-           return 0;
-}
-Result make(u8* buf,u32 size,char* loca)
-{
-FILE* fptr = fopen(loca, "wb");
-      fwrite(buf, 1, size, fptr);
-      fclose(fptr);
-	  return 0;
-	}
-
 Result http_down(char* nurl)
 { 
 	 char* d = strrchr(nurl, '/');
@@ -65,22 +20,22 @@ Result http_down(char* nurl)
 	int ds = 0;
 	ret = httpcOpenContext(&context, HTTPC_METHOD_GET, nurl, 0);
     if (ret != 0)
-	{printf("\x1b[31;1merror 0x%08X\n",ret);
+	{printf("\x1b[31;1merror 0x%08X\n",(int)ret);
 	return 1;
 	}
     ret = httpcAddRequestHeaderField(&context, (char*)"User-Agent", (char*)"MULTIDOWNLOAD");
     if (ret != 0){
-		 printf("\x1b[31;1merror in ARHF 0x%08X\n",ret);
+		 printf("\x1b[31;1merror in ARHF 0x%08X\n",(int)ret);
 		  return 1;
          }
     ret = httpcSetSSLOpt(&context, 1 << 9);
     if (ret != 0){
-		 printf("\x1b[31;1merror in SSLO 0x%08X\n",ret);
+		 printf("\x1b[31;1merror in SSLO 0x%08X\n",(int)ret);
 		  return 1;
          }
     ret = httpcBeginRequest(&context);
     if (ret != 0){
-		 printf("\x1b[31;1merror in HPR 0x%08X\x1b[37;1m\n",ret);
+		 printf("\x1b[31;1merror in HPR 0x%08X\x1b[37;1m\n",(int)ret);
 		  return 1;
          }
 	ret = httpcGetResponseStatusCodeTimeout(&context, &statuscode,6000000000);
@@ -100,7 +55,7 @@ Result http_down(char* nurl)
         return -2;
     ret = httpcGetDownloadSizeState(&context, NULL, &contentsize);
     if (ret != 0){
-		 printf("\x1b[31;1merror in HGDSS 0x%08X\x1b[37;1m\n",ret);
+		 printf("\x1b[31;1merror in HGDSS 0x%08X\x1b[37;1m\n",(int)ret);
 		  return 1;
          }
     printf("size(may be wrong): %" PRId32 "\n ",contentsize);
@@ -128,7 +83,7 @@ Result http_down(char* nurl)
 		// This download loop resizes the buffer as data is read.
 		ret = httpcDownloadData(&context, buf+size, 0x1000, &readsize);
 		size += readsize;
-		printf("Downloaded %d bytes out of %d bytes\r",size,contentsize);
+		printf("Downloaded %d bytes out of %d bytes\r",(int)size,(int)contentsize);
 		
 		
 		if (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING){
@@ -147,12 +102,10 @@ Result http_down(char* nurl)
 		 httpcCloseContext(&context);
 		 return 1;
      }
-    Handle fileHandle;
-    u32 bytesWritten;
 	lastbuf = buf;
 	buf = realloc(buf, size);
 	printf("\n");
-	printf("size : %d \n",size);
+	printf("size : %d \n",(int)size);
 	gfxFlushBuffers();
 	gfxSwapBuffers();
 	
@@ -161,7 +114,6 @@ Result http_down(char* nurl)
 		free(lastbuf);
 	    return 1;
 		}
- 	 char  f[1000];
 	 const char *git=  "https://github-cloud.s3.amazonaws.com";
 	 const char *git1="filename%3D";
 	 const char *git2="&";
@@ -169,8 +121,7 @@ Result http_down(char* nurl)
 	 char *target =NULL;
 	 char *end ,*start;
 	if(strstr(nurl,git)!=NULL)
-	{printf("got git\n");
-     
+	{  printf("got git\n");
 	 if(start=strstr(nurl,git1))
 	  {
 		  start +=strlen(git1);
@@ -193,35 +144,38 @@ Result http_down(char* nurl)
           ret = make(buf, size,loca);
 		  free(target);
 		  if(strstr(nurl,".3dsx")!=NULL)
-	   {  printf("got 3dsx\n");
+	 {  
+          printf("got 3dsx\n");
           printf("%s\n",f);
 		  char nu[1000];
 		  strcpy(nu,target);
 	      int len = strlen(target);
           nu[len-5] = '\0';
 		  char f[1024]="/3ds/";
-		    strcat(f,nu);
-			if(!(mkdir(f , 0777)))
-		printf("\x1b[32;1 Path made with success\n\x1b[37;1m");
-	     else 
-	 {   if (ENOENT == errno)
-		{printf("\x1b[31;1merror with path\n\x1b[37;1m");
-		}
+		  strcat(f,nu);
+		  if(!(mkdir(f , 0777)))
+		  printf("\x1b[32;1 Path made with success\n\x1b[37;1m");
+	      else 
+	     {   
+          if (ENOENT == errno)
+		 {
+			printf("\x1b[31;1merror with path\n\x1b[37;1m");
+		 }
 	     if (EEXIST == errno)
 		 { printf("exists\n");
-	   }			 
+	     }			 
 	} 
 			strcat(f,"/");
 			strcat(f,target);
 			
 			ret = make(buf, size,f);
 		  if (ret==0)
-		  {   
+		    {   
 			  printf("success\n");
 		      ds=1;
 			  return 0;
 			}
-	   }
+	    }
 		  char *exton =strrchr(f , '.');
           if(strcmp(exton + 1,"zip") == 0) {
           printf("zip file\n");
@@ -235,7 +189,7 @@ Result http_down(char* nurl)
 		      fsExit();
 		    }
 		  }
-	    }
+	    
 		else if(ds==0){
 	   if(strstr(nurl,".3dsx")!=NULL)
 	   { printf("got 3dsx\n");
@@ -287,7 +241,8 @@ Result http_down(char* nurl)
 		   }
 		  }
 		 }
-		}		 
+		}	
+	   }
 	  else
 	  {
 	   printf("not any special format\n");
@@ -309,7 +264,7 @@ Result http_down(char* nurl)
 		    }
 		  
 	    }
-		
+	  
 	}
     httpcCloseContext(&context);
 	free(buf);
@@ -321,12 +276,28 @@ Result http300(char *nurl)
    if (strstr(nurl,"mega")!=NULL)
    {
 	   ret=doMegaInstall(nurl);
+	   
+        
 	   if (ret!=3)
 	   return 1;
-       else 
-	   return 0;
+       else {
+		   char *exton =strrchr(loca, '.');
+		   if(strcmp(exton + 1,"zip") == 0) {
+          printf("Zip file\n");
+		  sdmcInit();
+		  fsInit();
+		  ret = ezip(loca);
+		  if (ret==0)
+		    {   
+	          printf("\x1b[32;1mExtracted\n\x1b[37;1m");
+		      sdmcExit();
+		      fsExit();
+		    }
+		  
+	    }
+	   
+     return 0; }
    }
-   
    if(strstr(nurl,"http")!=NULL)
    {
 	  ret= http_down(nurl);
@@ -345,7 +316,7 @@ Result http300(char *nurl)
   memset(loca, 0, 1024);   //solve error not the correct way to solve this but works.
   extern char buffer[1024];
   strcpy(loca,buffer);
-  if (ret==1)
+  if (ret!=0)
   {
 	  return 1;
   }
