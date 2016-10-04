@@ -8,6 +8,8 @@
 
 static u8 *megaInstallKey, *megaInstallIV;
 static httpcContext context;
+int ka=0;
+int c=0;
 u32 filesize = 0;
 
 uint64_t swap_uint64( uint64_t val ) {
@@ -97,6 +99,7 @@ int parseMegaFolderResponse(char *buf, u8 *aeskey, void *folderList) {
 		}
 
 		printf("count: %u\n", json_object_size(data));
+		ka=(int)json_object_size(data);
 	}
 
 	free(enckey);
@@ -303,6 +306,11 @@ int decodeMegaURL(char *url, int *nodeType, char *nodeId, u8 *aeskey, u8 *aesiv)
     printf("Success 1");
 	
 	u8 *buf = (u8*)malloc(strlen(url)+1);
+	if(buf==NULL)
+	{
+		printf("malloc failed\n");
+		return 1;
+	}
 	strcpy((char*)buf, url);
 	printf("success 2");
 	ptr = strchr((const char *)buf, '#');
@@ -357,7 +365,7 @@ int getMegaTitleId (char *url, u8 *aeskey, u8 *aesiv){
 Result makeloc(int fetchdata(void *buf, u32 bufSize, u32 *bufFill),u32 size,char* loca)
 {
 	u32 bufSize = 128 * 1024; // 128KB
-	u32 len=0;
+	u32 len=0;int pos=0;
     u8 *buf = (u8*)malloc(bufSize);
 	if(buf==NULL)
 	{
@@ -365,10 +373,18 @@ Result makeloc(int fetchdata(void *buf, u32 bufSize, u32 *bufFill),u32 size,char
 	}
     memset(buf, 0, bufSize);
     int ret=0; 
-	  ret=fetchdata(buf,bufSize,&len);
+	
+	FILE* fptr = fopen(loca, "wb");
+	fwrite(buf, 1, size, fptr);
+	  do{
+	 printf("success\n");
+	 
+      ret=fetchdata(buf,bufSize,&len);if(len==0)break;
 	  printf("len %d",(int)len);
-      FILE* fptr = fopen(loca, "wb");
-      fwrite(buf, 1, size, fptr);
+      fseek (fptr, pos, SEEK_SET);
+	  fwrite(buf, 1, len, fptr);
+	  pos+=len;
+	  }while(ret!=0);
       fclose(fptr);
 	
 	  free(buf);
@@ -478,8 +494,19 @@ if(nodeType == MEGA_NODETYPE_FOLDER){
 	char *filename = (char*)malloc(0x1000);
 	parseMegaFileAttributes(decryptStringCBC(decodeURLbase64(attributes, &olen), olen, aeskey), filename);
 	printf("file: %s\nsize: %lu\n", filename, filesize);
-	
-	strcat(loca,"/");
+	if(!(mkdir(loca , 0777)))
+		  printf("\x1b[32;1 Path made with success\n\x1b[37;1m");
+	      else 
+	     {   
+          if (ENOENT == errno)
+		 {
+			printf("\x1b[31;1merror with path\n\x1b[37;1m");
+		 }
+	     if (EEXIST == errno)
+		 { printf("exists\n");
+	     }			 
+	} 
+    strcat(loca,"/");
 	strcat(loca,filename);
 	free(filename);
     free(attributes);
