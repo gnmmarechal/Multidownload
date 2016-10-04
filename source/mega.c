@@ -306,11 +306,6 @@ int decodeMegaURL(char *url, int *nodeType, char *nodeId, u8 *aeskey, u8 *aesiv)
     printf("Success 1");
 	
 	u8 *buf = (u8*)malloc(strlen(url)+1);
-	if(buf==NULL)
-	{
-		printf("malloc failed\n");
-		return 1;
-	}
 	strcpy((char*)buf, url);
 	printf("success 2");
 	ptr = strchr((const char *)buf, '#');
