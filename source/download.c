@@ -3,8 +3,7 @@
 #include <sys/time.h>
 #include "mega.h"
 #include "fs.h"
-#include "cia.h"
-u64 top=3000000000;
+
 
 
 Result http300(char *nurl);
