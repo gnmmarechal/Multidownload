@@ -49,6 +49,7 @@ int main()
     Result res=1;
     gfxInitDefault();
 	acInit();
+	httpcInit(0x1000);
     consoleInit(GFX_BOTTOM,&bottom);
     consoleInit(GFX_TOP, &top);
 	consoleSelect(&top);
@@ -65,6 +66,8 @@ int main()
 	printf("              ENTER A URL\n");
 	printf("\n\n\n\n");
 	printf("             SCAN A QR CODE\n");
+	printf("\n\n\n\n");
+	printf("            UPDATE MULTIDOWNLOAD\n");
     //strcpy(loca, buffer);
 	
     while (aptMainLoop()) {
@@ -100,7 +103,6 @@ int main()
             swkbdSetHintText(&swkbd, texgen2);
             swkbdSetValidation(&swkbd, SWKBD_NOTEMPTY_NOTBLANK, 0, 0);
             button = swkbdInputText(&swkbd, mybuf, sizeof(mybuf));
-            httpcInit(0);
             Result ret = 1;
             if ((didit) && button != SWKBD_BUTTON_NONE)
 			{
@@ -111,7 +113,6 @@ int main()
             }
 			else 
 				printf("\x1b[31;1mDOWNLOAD: Failed\n\x1b[37;1m");
-            httpcExit();
             //cleaning vars
             for (int i = 0; i < 960; i++)
                 mybuf[i] = ' ';
@@ -139,29 +140,64 @@ int main()
 				gfxFlushBuffers();
 				gfxSwapBuffers();
 				extern char qurl[1024];
-				httpcInit(0);
-				ret=http300(qurl);
+				char kat[1024];
+				strcpy(kat,qurl);
+				ret=http300(kat);
 		         if (ret==0) {
 					 printf("\x1b[32;1mDOWNLOAD: Success\n\x1b[37;1m");
-					 httpcExit();
+					 
 				 }
 				 else
 				 {
 					 printf("\x1b[31;1mDOWNLOAD: Failed\n\x1b[37;1m");
-					 httpcExit();
 				 }
 			}
 	  }
+	   if(touch.py<120 && touch.py>90 && touch.px<240)
+	   {   Result ret=0;
+		   printf("Getting the latest release");
+		   char *get;
+		   bool x= envIsHomebrew() ;
+           if(x==true)
+		 {
+           printf("\nUpdating 3dsx\n");
+	       get="multidownload.3dsx";
+		  char b[40]="/3ds/multidownload/multidownload.3dsx";
+		  }
+		   else
+		   {
+			   printf("\nUpdating cia\n");
+			   get="multidownload.cia";
+			   }
+			   #include "json.h"
+		   ret=latu((char*)"https://api.github.com/repos/pirater12/multidownload/releases/latest",get);
+		  if (ret==1)
+		  {
+			  printf("failed\n");
+		  }
+		   else {
+		   extern char *url;
+		   ret=http300(url); 
+		   }
+		   if(ret==0)
+		   {
+                printf("\x1b[32;1mDOWNLOAD: Success\n\x1b[37;1m");
+            }
+			else 
+				printf("\x1b[31;1mDOWNLOAD: Failed\n\x1b[37;1m");
+ 
+	   }
 	
         if (kDown & KEY_START)
             break;
         // Flush and swap framebuffers
         gfxFlushBuffers();
-		gspWaitForVBlank();
+        gspWaitForVBlank();
         gfxSwapBuffers();
     }
-	hidExit();
-	acExit();
+    hidExit();
+    httpcExit();
+    acExit();
     gfxExit();
     return 0;
 }
